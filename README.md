@@ -1,24 +1,27 @@
 
+
 # Printooth
 [![](https://jitpack.io/v/mazenrashed/Printooth.svg)](https://jitpack.io/#mazenrashed/Printooth)
-Printooth aim is to provide a simple abstraction for use the bluetooth printers regardless of its brand.
+[![Android Arsenal]( https://img.shields.io/badge/Android%20Arsenal-Printooth-green.svg?style=flat )]( https://android-arsenal.com/details/1/7323 )
+
+Printooth aim is to provide a simple abstraction for use the Bluetooth printers regardless of its brand.
 
 ###  Add the JitPack repository to your build file
 ```groovy
 allprojects {
-	repositories {
-		...
-		maven { url 'https://jitpack.io' }
-	}
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
 }
 ```
 ### Add dependency
 ```groovy
 dependencies {
-	implementation 'com.github.mazenrashed:Printooth:1.0.2'
+    implementation 'com.github.mazenrashed:Printooth:${LAST_VERSION}'
 }
 ```
-### Add persessions to manifest
+### Add permissions to manifest
 ```groovy
 <uses-permission android:name="android.permission.BLUETOOTH" />  
 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -49,28 +52,28 @@ Check if Printooth has saved printer:
 ```kotlin
 Printooth.hasPairedPrinter()
 ```
-To get current saved printer:
+To get the current saved printer:
 ```kotlin
 Printooth.getPairedPrinter()
 ```
-To remove current saved printer:
+To remove the current saved printer:
 ```kotlin
 Printooth.removeCurrentPrinter()
 ```
 ### Printing
-Printooth provide a simple builder to design your paper.
+Printooth provides a simple builder to design your paper.
 To print `Hello World` simply, write this code:
 ```kotlin
 var printables = ArrayList<Printable>()
-var printable = Printable.PrintableBuilder()  
+var printable = TextPrintable.Builder()  
         .setText("Hello World")
 printables.add(printable)
 BluetoothPrinter.printer().print(printables)
 ```
-Use all builder responsibilities:
+Use all builder functionalities:
 ```kotlin
 var printables = ArrayList<Printable>()
-var printable = Printable.PrintableBuilder()  
+var printable = TextPrintable.Builder()  
         .setText("Hello World") //The text you want to print
         .setAlignment(DefaultPrinter.ALLIGMENT_CENTER)
         .setEmphasizedMode(DefaultPrinter.EMPHASISED_MODE_BOLD) //Bold or normal  
@@ -106,9 +109,9 @@ BluetoothPrinter.printer(printer2).print(printables)
 ```
 ### If you have a printer with deferent commands
 
-Create a class from type `Printer` and override the initializers method, then return your printer commands from the printers command sheet ( You can find it on the Internet ), lets take an example:
+Create a class from type `Printer` and override the initializers method, then return your printer commands from the printers command sheet ( You can find it on the Internet ), let's take an example:
  ```kotlin
- open class SomePrinter : Printer() {  
+ open class MyPrinter : Printer() {  
   
     override fun initLineSpacingCommand(): ByteArray = byteArrayOf(0x1B, 0x33)  
   
@@ -125,14 +128,39 @@ Create a class from type `Printer` and override the initializers method, then re
     override fun initCharacterCodeCommand(): ByteArray = byteArrayOf(27, 116)  
   
     override fun initFeedLineCommand(): ByteArray = byteArrayOf(27, 100)  
+    
+    override fun initPrintingImagesHelper(): PrintingImagesHelper = DefaultPrintingImagesHelper()
 }
+```
+If you have issues with printing images, you can implement the process of transfaring image from bitmap to ByteArray manuly by extends PrintingImagesHelper class and implement getBitmapAsByteArray, then you shold return an object from your helper to initPrintingImagesHelper() as this example:
+```kotlin
+class MyPrintingImagesHelper : PrintingImagesHelper {  
+    override fun getBitmapAsByteArray(bitmap: Bitmap): ByteArray {  
+        return convertBitmapToByteArray(bitmap)  
+    }  
+}
+//in your printer class
+open class MyPrinter : Printer() {  
+    ....
+    ....
+    override fun initPrintingImagesHelper(): PrintingImagesHelper = MyPrintingImagesHelper()
+}
+//when using printooth
+private val printing = Printooth.printer(MyPrinter())
+...
+printing.print(printables)
 ```
 Then pass your printer class to Printooth:
 ```kotlin
-BluetoothPrinter.printer(SomePrinter()).print(printables)
+BluetoothPrinter.printer(MyPrinter()).print(printables)
 ```
 
 ### Proguard config
 ````
 -keep class * implements java.io.Serializable { *; }
 ````
+## Contributing
+
+We welcome contributions to Printooth!
+* ⇄ Pull requests and ★ Stars are always welcome.
+
